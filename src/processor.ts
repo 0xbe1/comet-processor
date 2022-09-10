@@ -99,7 +99,6 @@ async function onCollateral(
         await ctx.contract.getPrice(token.priceFeed),
         PRICE_FEED_DECIMALS
       );
-      ctx.meter.Gauge("collateral_price").record(price, tag);
       let collateral = scaleDown(amount, token.decimals);
       let collateralUSD = collateral.multipliedBy(price);
       let counterCollateral = ctx.meter.Counter("collateral");
