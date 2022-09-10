@@ -1,5 +1,7 @@
 import { CometContext, CometProcessor } from "./types/Comet";
 import { BigNumber } from "ethers";
+import { BigDecimal } from "@sentio/sdk";
+import { toBigDecimal } from "@sentio/sdk/lib/utils";
 
 interface Asset {
   address: string;
@@ -9,6 +11,9 @@ interface Asset {
 }
 
 const USDC_DECIMALS = 6;
+
+// https://github.com/compound-finance/comet/blob/aa92a19c2eb9212856f3dae423825f33abbb8f54/contracts/CometCore.sol#L43
+const PRICE_FEED_DECIMALS = 8;
 
 // priceFeed is fetched from Configurator.getConfiguration(c3d688b66703497daa19211eedff47f25384cdc3)
 // TODO: can i call getAssetInfoByAddress to get the initial priceFeed
@@ -92,11 +97,11 @@ async function onCollateral(
     try {
       let price = scaleDown(
         await ctx.contract.getPrice(token.priceFeed),
-        token.decimals
+        PRICE_FEED_DECIMALS
       );
       ctx.meter.Gauge("collateral_price").record(price, tag);
       let collateral = scaleDown(amount, token.decimals);
-      let collateralUSD = collateral.mul(price);
+      let collateralUSD = collateral.multipliedBy(price);
       let counterCollateral = ctx.meter.Counter("collateral");
       let counterCollateralUSD = ctx.meter.Counter("collateral_usd");
       if (isSupply) {
@@ -110,7 +115,7 @@ async function onCollateral(
   }
 }
 
-function scaleDown(v: BigNumber, decimals: number): BigNumber {
-  const ten = BigNumber.from(10);
-  return v.div(ten.pow(decimals));
+function scaleDown(v: BigNumber, decimals: number): BigDecimal {
+  const ten = new BigDecimal(10);
+  return toBigDecimal(v).div(ten.pow(decimals));
 }
