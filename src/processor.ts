@@ -73,14 +73,6 @@ CometProcessor.bind({
         .Counter("Collateral")
         .sub(scaleDown(amount, token.decimals), { asset: token.symbol });
     }
-  })
-  .onSupply((event, ctx) => {
-    let { amount } = event.args;
-    ctx.meter.Counter("Borrow").sub(scaleDown(amount, USDC_DECIMALS));
-  })
-  .onWithdraw((event, ctx) => {
-    let { amount } = event.args;
-    ctx.meter.Counter("Borrow").add(scaleDown(amount, USDC_DECIMALS));
   });
 
 function scaleDown(v: BigNumber, decimals: number): BigNumber {
